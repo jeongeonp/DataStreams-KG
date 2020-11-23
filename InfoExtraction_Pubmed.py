@@ -2,7 +2,7 @@ import nltk, re, pprint
 from nltk.tokenize import word_tokenize
 from urllib import request
 from bs4 import BeautifulSoup
-import pandas as pd
+#import pandas as pd
 import random
 
 
