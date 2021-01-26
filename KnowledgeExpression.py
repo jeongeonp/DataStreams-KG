@@ -24,7 +24,7 @@ def sele_papers(link, keyword, N):
     #full path /html/body/div/div[10]/div[2]/div[2]/div[2]
     papers = browser.find_elements_by_xpath("//*[@id='gs_res_ccl_mid']/div[@*]")
     # print (papers)
-    links = []
+    links = {}
     for i, eachPaper in enumerate(papers):
       if (i <= N):
         # print (eachArticle.find_element_by_xpath('.//g-card/div/div/div[2]/a').get_attribute('href'))
@@ -33,8 +33,22 @@ def sele_papers(link, keyword, N):
         # /html/body/div/div[10]/div[2]/div[2]/div[2]/div[2]/div/h3/a
         # /html/body/div/div[10]/div[2]/div[2]/div[2]/div[3]/div[2]/h3/a
         # /html/body/div/div[10]/div[2]/div[2]/div[2]/div[4]/div[2]/h3/a
+        # //*[@id="gs_res_ccl_mid"]/div[2]/div[2]/div[1]
+        # //*[@id="gs_res_ccl_mid"]/div[1]/div[2]/h3
+        # //*[@id="gs_res_ccl_mid"]/div[1]/div[2]/div[1]
+        # //*[@id="gs_res_ccl_mid"]/div[1]/div[2]/div[2]
+        # //*[@id="gs_res_ccl_mid"]/div[1]/div[2]/div[3]
+        print ("----")
+        print (eachPaper.find_element_by_xpath('.//div[@*]/h3/a').get_attribute('href'))
+        print (eachPaper.find_element_by_xpath('.//div[@*]/div[1]').text)
+        print (eachPaper.find_element_by_xpath('.//div[@*]/div[2]').text)
+        print (eachPaper.find_element_by_xpath('.//div[@*]/div[3]').text)
         try:
-          links.append(eachPaper.find_element_by_xpath('.//div[@*]/h3/a').get_attribute('href'))
+          links["link"] = eachPaper.find_element_by_xpath('.//div[@*]/h3/a').get_attribute('href') #link
+          links["author"] = eachPaper.find_element_by_xpath('.//div[@*]/div[1]').text #author
+          links["abstract"] = eachPaper.find_element_by_xpath('.//div[@*]/div[2]').text #abstract
+          links["ref"] = eachPaper.find_element_by_xpath('.//div[@*]/div[3]').text #ref
+          print (links)
         except NoSuchElementException:
           continue
       
@@ -78,26 +92,28 @@ link = "https://www.google.com/"
 
 
 ## load json data
-with open('./train_annotated.json') as json_file:
-    json_data = json.load(json_file)
+# with open('./train_annotated.json') as json_file:
+#     json_data = json.load(json_file)
 
-print (type(json_data))
-eachEntitySet = json_data[0]["vertexSet"][0]
-jsonn = {}
-# print (eachEntitySet) #entity one
-for i, eachEntitySet in enumerate(json_data[0]["vertexSet"]):
-  print (eachEntitySet)
-  jsonn[i] = {}
-  if (i <= 5):
-    for eachNode in eachEntitySet:
-      keyword = eachNode["name"]
-      print (keyword, " -----------------------------")
-      # print (sele_articles(link, keyword, 5))
-      if (keyword in jsonn[i]):
-        continue
-      # print (sele_papers("https://scholar.google.com", keyword, 5))
-      jsonn[i][keyword] = sele_papers("https://scholar.google.com", keyword, 5)
+# print (type(json_data))
+# eachEntitySet = json_data[0]["vertexSet"][0]
+# jsonn = {}
+# # print (eachEntitySet) #entity one
+# for i, eachEntitySet in enumerate(json_data[0]["vertexSet"]):
+#   print (eachEntitySet)
+#   jsonn[i] = {}
+#   if (i <= 1):
+#     for eachNode in eachEntitySet:
+#       keyword = eachNode["name"]
+#       print (keyword, " -----------------------------")
+#       # print (sele_articles(link, keyword, 5))
+#       if (keyword in jsonn[i]):
+#         continue
+#       # print (sele_papers("https://scholar.google.com", keyword, 5))
+#       jsonn[i][keyword] = sele_papers("https://scholar.google.com", "search", 1)
 
-with open('./searchPapers.txt', 'w') as f:
-  f.write(json.dumps(jsonn))
+# with open('./searchPapers.txt', 'w') as f:
+#   f.write(json.dumps(jsonn))
+
+sele_papers("https://scholar.google.com", "search", 1)
   
