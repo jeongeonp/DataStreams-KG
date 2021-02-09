@@ -3,7 +3,7 @@ import './D3KG.css';
 
 import { Graph } from "react-d3-graph";
 import * as d3 from 'd3'
-import { Grid, Image, Input, Icon, Segment } from "semantic-ui-react"
+import { Grid, Image, Input, Icon } from "semantic-ui-react"
 
 import relation from '../assets/rel_info.json'
 import testdata from '../assets/test.json'
@@ -65,7 +65,7 @@ export default class D3Tree extends React.Component {
             nodes: [],
             links: [],
             data: {},
-            currentNode: '',
+            currentNode: 'dd',
         }
         this.addNodes = this.addNodes.bind(this)
         this.addLinks = this.addLinks.bind(this)
@@ -134,10 +134,7 @@ export default class D3Tree extends React.Component {
         var config = { style: colorString }
         var newNode = { id: id,  }
         var currNodes = this.state.nodes
-        if (this.state.nodes.map(v => v.id).indexOf(id) === -1) {
-            currNodes.push(newNode)
-            console.log("*", id)
-        }
+        currNodes.push(newNode)
         this.setState({
             nodes: currNodes
         })
@@ -158,44 +155,42 @@ export default class D3Tree extends React.Component {
         this.setState({
             currentNode: nodeId
         })
+        console.log("here!!!!")
     }
 
     render() {
-        const { nodes, links, data, currentNode } = this.state
+        const { nodes, links, data } = this.state
         const { clickNode } = this
         //const data = {nodes: [{id: 'sally'}, {id: 'tom'}], links: [{source: 'sally', target: 'tom'}]}
         const myConfig = {
-            automaticRearrangeAfterDropNode: false,
-
             nodeHighlightBehavior: true,
-            //renderLabel: true,
+            renderLabel: true,
             maxZoom: 8,
             minZoom: 0.1,
             width: 700,
-            collapsible: true,
-            staticGraphWithDragAndDrop: true,
+            
             highlightDegree: 1,
             highlightOpacity: 1,
             directed: true,
             d3: {
-                gravity: -100,
-                linkLength: 100,
+                gravity: -350,
+                linkLength: 200,
             },
             node: {
                 color: "lightblue",
-                highlightColor: "#2a9df4",
-                highlightFontSize: 14,
-                size: 1200,
-                highlightStrokeColor: "#2a9df4",
+                highlightColor: "lightblue",
+                highlightFontSize: 16,
+                size: 1000,
+                highlightStrokeColor: "blue",
                 fontSize: 14,
                 labelPosition: "center",
                 opacity: 0.8,
             },
             link: {
-                highlightColor: "#2a9df4",
+                highlightColor: "blue",
                 renderLabel: true,
                 color: "grey",
-                fontSize: 8,
+                fontSize: 10,
                 opacity: 0.8,
             },
         };
@@ -204,7 +199,7 @@ export default class D3Tree extends React.Component {
             <>
             
             
-            <Grid style={{border: '5px solid white', height: '100%'}}>
+            <Grid style={{border: '5px solid black', height: '100%'}}>
                 <Grid.Row>
                     <Grid.Column style={{paddingTop: '10px', marginLeft: '10px'}} width={15}>
                         <h2>Knowledge Graph</h2>
@@ -239,15 +234,17 @@ export default class D3Tree extends React.Component {
                         </div>
                     </Grid.Column>
                     <Grid.Column width={4}>
+                        <Segment>
                         <div style={{padding: '0px'}}>
                             <Input
                             icon={<Icon name='search' inverted circular link />}
                             placeholder='Search...'
-                            /> 
-                            <div style={{padding:'10px'}}></div>
-                            <div>Current Node: {currentNode}</div>  
+                            />   
                         </div>
-                        
+                        </Segment>
+                        <Segment>
+                            <div>Current Node: {this.currentNode}</div>
+                        </Segment>
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
