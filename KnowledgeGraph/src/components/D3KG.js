@@ -9,6 +9,7 @@ import relation from '../assets/rel_info.json'
 import testdata from '../assets/test.json'
 import traindata from '../assets/train_annotated.json'
 import result from '../assets/DocRED_result.json'
+import subgraph from '../assets/subgraph.json'
 
 
 // graph event callbacks
@@ -72,13 +73,15 @@ export default class D3Tree extends React.Component {
         this.parseTestData = this.parseTestData.bind(this)
         this.parseResult = this.parseResult.bind(this)
         this.parseRelation = this.parseRelation.bind(this)
+        this.parseSubgraph = this.parseSubgraph.bind(this)
 
         this.clickNode = this.clickNode.bind(this)
     }
 
     componentDidMount() {
         //this.parseTrainData()
-        this.parseResult(10)
+        // this.parseResult(10)
+        this.parseSubgraph()
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -110,6 +113,11 @@ export default class D3Tree extends React.Component {
     parseRelation(key) {
         //console.log(relation[key])
         return relation[key]
+    }
+
+    parseSubgraph() {
+      console.log(subgraph)
+      this.setState({nodes: subgraph['nodes'], links: subgraph['links']})
     }
 
     parseTrainData() {
@@ -162,24 +170,26 @@ export default class D3Tree extends React.Component {
 
     render() {
         const { nodes, links, data, currentNode } = this.state
+        console.log("this.state ", this.state)
         const { clickNode } = this
         //const data = {nodes: [{id: 'sally'}, {id: 'tom'}], links: [{source: 'sally', target: 'tom'}]}
         const myConfig = {
             automaticRearrangeAfterDropNode: false,
-
             nodeHighlightBehavior: true,
             //renderLabel: true,
             maxZoom: 8,
-            minZoom: 0.1,
-            width: 700,
-            collapsible: true,
-            staticGraphWithDragAndDrop: true,
+            minZoom: 0.01,
+            width: 1200,
+            height: 700,
+            collapsible: false,
+            staticGraphWithDragAndDrop: false,
             highlightDegree: 1,
             highlightOpacity: 1,
             directed: true,
             d3: {
-                gravity: -100,
-                linkLength: 100,
+                gravity: -1000,
+                linkLength: 100000,
+                // disableLinkForce: true,
             },
             node: {
                 color: "lightblue",
@@ -187,7 +197,7 @@ export default class D3Tree extends React.Component {
                 highlightFontSize: 14,
                 size: 1200,
                 highlightStrokeColor: "#2a9df4",
-                fontSize: 14,
+                fontSize: 24,
                 labelPosition: "center",
                 opacity: 0.8,
             },
@@ -195,8 +205,9 @@ export default class D3Tree extends React.Component {
                 highlightColor: "#2a9df4",
                 renderLabel: true,
                 color: "grey",
-                fontSize: 8,
+                fontSize: 24,
                 opacity: 0.8,
+                labelProperty: "label",
             },
         };
         
