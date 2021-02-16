@@ -371,7 +371,7 @@ if __name__ == '__main__':
     # the simple quote will also look for similar keywords
     search(keyword, depth)
 
-    with open('subgraph.json', 'w') as f:
+    with open('KnowledgeGraph/src/assets/subgraph.json', 'w') as f:
         json.dump(subgraph, f)
 
     # print("Recommend wordset : ", recommend_words)
