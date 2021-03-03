@@ -11,9 +11,7 @@ import relation from '../assets/rel_info.json'
 import testdata from '../assets/test.json'
 import traindata from '../assets/train_annotated.json'
 import result from '../assets/DocRED_result.json'
-// import subgraph from '../assets/subgraph.json'
-// import subgraph from '../assets/graph.json'
-import subgraph from '../assets/small_graph.json'
+import subgraph from '../assets/subgraph.json'
 
 
 
@@ -185,7 +183,7 @@ export default class D3Tree extends React.Component {
             maxZoom: 8,
             minZoom: 0.01,
             width: 1400,
-            height: 1400,
+            height: 700,
             collapsible: false,
             staticGraphWithDragAndDrop: false,
             highlightDegree: 1,
@@ -265,7 +263,7 @@ export default class D3Tree extends React.Component {
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
-            {/* <ScholarTable filterIndex = {this.state.currentNode}/> */}
+            <ScholarTable filterIndex = {this.state.currentNode}/>
             
             </>
         )
