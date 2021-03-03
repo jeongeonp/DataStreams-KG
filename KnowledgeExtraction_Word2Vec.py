@@ -28,6 +28,23 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 import gensim
 from gensim.models import Word2Vec
+import random
+
+from random_user_agent.user_agent import UserAgent
+from random_user_agent.params import SoftwareName, OperatingSystem
+
+
+# you can also import SoftwareEngine, HardwareType, SoftwareType, Popularity from random_user_agent.params
+# you can also set number of user agents required by providing `limit` as parameter
+
+software_names = [SoftwareName.CHROME.value]
+operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]   
+
+user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
+# Get list of user agents.
+user_agents = user_agent_rotator.get_user_agents()
+# Get Random User Agent String.
+user_agent = user_agent_rotator.get_random_user_agent()
 
 
 print("Loading models ...")
@@ -36,6 +53,8 @@ start = time.time()
 nlp = spacy.load("en_core_web_lg")
 lm = WordNetLemmatizer()
 remove_punct_dict = dict((ord(punct), None) for punct in string.punctuation)
+
+# load model
 word2vec_model = gensim.models.KeyedVectors.load_word2vec_format('./GoogleNews-vectors-negative300.bin.gz', binary=True)
 
 chrome_options = webdriver.ChromeOptions()
@@ -51,10 +70,6 @@ ua = UserAgent()
 proxies = {
   'http': 'http://10.10.1.10:3128',
   'https': 'https://121.168.101.205:8080',
-}
-headers = {
-    "User-Agent": ua.random,
-    "Accept": "text_html,application_xhtml+xml,application_xml;q=0.9,image_webp,**/**;q=0.8"
 }
 
 print("elapsed time : ", time.time() - start)
@@ -134,6 +149,8 @@ if __name__ == '__main__':
     subgraph['nodes'] = []
     subgraph['links'] = []
 
+    scholar_table = {}
+
     # print("Running Evaluation DropFile...")
     # start = time.time()
     # recommend_word = []
@@ -166,9 +183,6 @@ if __name__ == '__main__':
     Before using it, please update the initial variables
 
     """
-
-
-
 
     def get_citations(content):
         out = 0
@@ -208,12 +222,22 @@ if __name__ == '__main__':
     def LemNomalize(text):
         return LemTokens(word_tokenize(text.lower().translate(remove_punct_dict)))
 
+    def removeDuplicateDict(l): #remove duplicate dictionaries in list
+        seen = set()
+        new_l = []
+        for d in l:
+            t = tuple(d.items())
+            if t not in seen:
+                seen.add(t)
+                new_l.append(d)
+
+        return new_l
+
     def search(keyword, d):
-        if (d == 0):
-            return
-        number_of_results = 100  # number of results to look for on Google Scholar
+
+        number_of_results = 10  # number of results to look for on Google Scholar
         save_database = False  # choose if you would like to save the database to .csv
-        path = './nilm_100_exact_author_'+ keyword + '.csv'  # path to save the data
+        path = './KnowledgeGraph/src/assets/paper_info/nilm_100_exact_author_'+ keyword + '.csv'  # path to save the data
 
         # Variables
         links = list()
@@ -229,9 +253,12 @@ if __name__ == '__main__':
 
         for n in range(0, number_of_results, 10):
             url = 'https://scholar.google.com/scholar?start=' + str(n) + '&q=' + keyword.replace(' ', '+') + '&hl=en&as_sdt=0,5'
-            # url = 'https://scholar.google.com/scholar?hl=ko&as_sdt=0%2C5&q=amnesia&btnG='
+      
+            # random_num = (random.randint(3,17)*random.randrange(1,7))%len(user_agents)
+            # agent = user_agents[random_num]    
+            user_agent = user_agent_rotator.get_random_user_agent()
             headers = {
-                "User-Agent": ua.random,
+                "User-Agent": user_agent,
                 "Accept": "text_html,application_xhtml+xml,application_xml;q=0.9,image_webp,**/**;q=0.8"
             }
             page = session.get(url, headers=headers)
@@ -267,12 +294,13 @@ if __name__ == '__main__':
                     abstract.append(get_abstract(div.find('div', {'class': 'gs_rs'}).text))
                     rank.append(rank[-1] + 1)
         # Create a dataset and sort by the number of citations
+        rank_to_str = list(map(lambda u: str(u), rank))
         data = pd.DataFrame(zip(author, title, citations, year, links, abstract), index=rank[1:],
                             columns=['Author', 'Title', 'Citations', 'Year', 'Source', 'Abstract'])
         data.index.name = 'Rank'
 
         data_ranked = data.sort_values(by='Citations', ascending=False)
-        print(data_ranked.head(20))
+        # print(data_ranked.head(20))
 
         # # Plot by citation number
         # plt.plot(rank[1:],citations,'*')
@@ -281,6 +309,11 @@ if __name__ == '__main__':
         # plt.title('Keyword: '+keyword)
 
         # # Save results
+        data_ranked_json = data_ranked[:20].to_json(orient = "index")
+        parsed = json.loads(data_ranked_json)
+        scholar_table[keyword] = parsed
+        # json.dumps(parsed, indent = 4)
+
         data_ranked.to_csv(path, encoding='utf-8-sig') # Change the path
 
         recommend_words = []
@@ -330,7 +363,7 @@ if __name__ == '__main__':
             words = [word for word in words if re.match('^[a-zA-Z]\w+$', word)]
             words = [lm.lemmatize(word) for word in words]
             words = [word for word in words if word not in stops]
-            print(words)
+            # print(words)
 
             # embedding_model = Word2Vec(sentences=words, size=100, window=2, min_count=50, workers=4, iter=100, sg=1)
             # model_result = word2vec_model.wv.most_similar(keyword)
@@ -342,26 +375,30 @@ if __name__ == '__main__':
                 else:
                     if word not in word_score:
                         word_score[word] = word2vec_model.similarity(keyword, word)
-                        print("similarity with " + word + " is :", word2vec_model.similarity(keyword, word))
+                        # print("similarity with " + word + " is :", word2vec_model.similarity(keyword, word))
         sorted_score_list = sorted(word_score.items(), key=lambda kv: kv[1], reverse=True)
         
         for idx in range(30):
-            recommend_list.append(sorted_score_list[idx][0])
+            try: recommend_list.append(sorted_score_list[idx][0])
+            except: return
         if keyword in recommend_list:
             recommend_list.remove(keyword)
             recommend_list.append(sorted_score_list[30][0])
-        print("Top 30 words after clustering : ", recommend_list)
+        print("Top 30 words after clustering " + keyword + " : ", recommend_list)
+        # print("subgraph of " + keyword + " : ", subgraph)
+        if (d == 0):
+            return
+        else:
+            links = list(map(lambda u: dict({'source': keyword, 'target': u, 'label': str(word2vec_model.similarity(keyword, u))}), recommend_list[:width]))
+            nodes = list(map(lambda u: dict({'id': u }), recommend_list[:width]))
+            nodes.append(dict({'id': keyword}))
+            
+            subgraph['nodes'].extend(nodes)
+            subgraph['links'].extend(links)
 
-        links = list(map(lambda u: dict({'source': keyword, 'target': u, 'label': str(word2vec_model.similarity(keyword, u))}), recommend_list[:10]))
-        nodes = list(map(lambda u: dict({'id': u }), recommend_list[:10]))
-        nodes.append(dict({'id': keyword}))
-        
-        subgraph['nodes'].extend(nodes)
-        subgraph['links'].extend(links)
-        print("subgraph of " + keyword + " : ", subgraph)
-        
-        for z in range(width):
-          search(recommend_list[z], d-1)
+            for z in range(width):
+              # scholar_table[recommend_list[z]] = None
+              search(recommend_list[z], d-1)
         
         return
 
@@ -369,29 +406,18 @@ if __name__ == '__main__':
     # Update these variables according to your requirement
     keyword = str(input("Search keyword : "))  # the double quote will look for the exact keyword,
     # the simple quote will also look for similar keywords
+
+    #recursively go through search
     search(keyword, depth)
 
+    #save graph
+    subgraph['nodes'] = removeDuplicateDict(subgraph['nodes'])
+    subgraph['links'] = removeDuplicateDict(subgraph['links'])
     with open('./KnowledgeGraph/src/assets/subgraph.json', 'w') as f:
         json.dump(subgraph, f)
 
-    # print("Recommend wordset : ", recommend_words)
-    # x = {}
-    # return_list = []
-    # for i in range(len(recommend_words)):
-    #     if recommend_words[i] in x:
-    #         x[recommend_words[i]] += 1
-    #     else:
-    #         x[recommend_words[i]] = 1
-
-    # sorted_list = sorted(x.items(), key=lambda kv: kv[1], reverse=True)
-    # # print(sorted_list)
-    # for idx in range(30):
-    #     return_list.append(sorted_list[idx][0])
-    # if keyword in return_list:
-    #     return_list.remove(keyword)
-    #     return_list.append(sorted_list[30][0])
-
-    # print("Top 30 words after clustering : ", return_list)
+    with open('./KnowledgeGraph/src/assets/ScholarTable.json', 'w') as f:
+        json.dump(scholar_table, f, indent=4)
 
 
 

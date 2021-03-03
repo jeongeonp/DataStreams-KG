@@ -4,12 +4,17 @@ import './D3KG.css';
 import { Graph } from "react-d3-graph";
 import * as d3 from 'd3'
 import { Grid, Image, Input, Icon, Segment } from "semantic-ui-react"
+import ScholarTable from './Table';
+
 
 import relation from '../assets/rel_info.json'
 import testdata from '../assets/test.json'
 import traindata from '../assets/train_annotated.json'
 import result from '../assets/DocRED_result.json'
-import subgraph from '../assets/subgraph.json'
+// import subgraph from '../assets/subgraph.json'
+// import subgraph from '../assets/graph.json'
+import subgraph from '../assets/small_graph.json'
+
 
 
 // graph event callbacks
@@ -17,9 +22,9 @@ const onClickGraph = function() {
     window.alert(`Clicked the graph background`);
 };
 
-// const onClickNode = function(nodeId) {
-//     window.alert(`Clicked node ${nodeId}`);
-// };
+const onClickNode = function(nodeId) {
+    window.alert(`Clicked node ${nodeId}`);
+};
 
 const onDoubleClickNode = function(nodeId) {
     window.alert(`Double clicked node ${nodeId}`);
@@ -66,7 +71,7 @@ export default class D3Tree extends React.Component {
             nodes: [],
             links: [],
             data: {},
-            currentNode: '',
+            currentNode: subgraph['nodes'][0]['id'],
         }
         this.addNodes = this.addNodes.bind(this)
         this.addLinks = this.addLinks.bind(this)
@@ -170,7 +175,7 @@ export default class D3Tree extends React.Component {
 
     render() {
         const { nodes, links, data, currentNode } = this.state
-        console.log("this.state ", this.state)
+        // console.log("this.state ", this.state)
         const { clickNode } = this
         //const data = {nodes: [{id: 'sally'}, {id: 'tom'}], links: [{source: 'sally', target: 'tom'}]}
         const myConfig = {
@@ -179,8 +184,8 @@ export default class D3Tree extends React.Component {
             //renderLabel: true,
             maxZoom: 8,
             minZoom: 0.01,
-            width: 1200,
-            height: 700,
+            width: 1400,
+            height: 1400,
             collapsible: false,
             staticGraphWithDragAndDrop: false,
             highlightDegree: 1,
@@ -213,8 +218,6 @@ export default class D3Tree extends React.Component {
         
         return (
             <>
-            
-            
             <Grid style={{border: '5px solid white', height: '100%'}}>
                 <Grid.Row>
                     <Grid.Column style={{paddingTop: '10px', marginLeft: '10px'}} width={15}>
@@ -256,12 +259,13 @@ export default class D3Tree extends React.Component {
                             placeholder='Search...'
                             /> 
                             <div style={{padding:'10px'}}></div>
-                            <div>Current Node: {currentNode}</div>  
+                            <div><h1> Current Node: {currentNode}</h1></div>  
                         </div>
                         
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
+            {/* <ScholarTable filterIndex = {this.state.currentNode}/> */}
             
             </>
         )
